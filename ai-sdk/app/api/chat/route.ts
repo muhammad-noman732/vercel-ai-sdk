@@ -29,6 +29,7 @@ export async function POST(req:Request) {
         })
 
          return result.toUIMessageStreamResponse();
+         
      } catch (error) {
         console.error("Error streaming chat completion" ,error);
         return NextResponse.json({
