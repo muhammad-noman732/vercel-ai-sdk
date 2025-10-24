@@ -4,13 +4,13 @@ import React, { useState } from 'react'
 
 const ChatPage = () => {
     const[input , setInput] = useState("");
-    const {messages , sendMessage , status , error , stop} = useChat()
+    const {messages , sendMessage , status , error , stop } = useChat()
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>)=>{
         e.preventDefault();
         sendMessage({text: input});
         setInput("")
-    }
+      }
   return (
 
     <div className="min-h-screen w-full bg-black flex flex-col items-center justify-between">
