@@ -24,7 +24,9 @@ export async function POST(req:Request) {
         
          })
 
-         return result.toUIMessageStreamResponse()
+         return result.toUIMessageStreamResponse({
+            sendSources: true  // to send the resource of the result 
+         })
 
     } catch (error) {
         console.error("Error streaming chat completion" ,error);

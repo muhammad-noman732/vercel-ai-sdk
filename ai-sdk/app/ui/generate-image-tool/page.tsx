@@ -4,15 +4,16 @@ import React, { useRef, useState } from "react";
 import { DefaultChatTransport } from "ai";
 import Image from "next/image";
 import { Paperclip, Send, StopCircle } from "lucide-react";
+import type { ChatMessages } from "@/app/api/generate-image-tool/route";
 
 const MultiModalChatPage = () => {
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<FileList | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { error, messages, sendMessage, status, stop } = useChat({
+  const { error, messages, sendMessage, status, stop } = useChat<ChatMessages>({
     transport: new DefaultChatTransport({
-      api: "/api/multi-model-chat",
+      api: "/api/generate-image-tool",
     }),
   });
 
@@ -98,6 +99,68 @@ const MultiModalChatPage = () => {
                           {part.filename ?? `File ${index + 1}`}
                         </a>
                       );
+                      // tool case for image
+                    case "tool-generateImage":
+                      switch(part.state){
+                          case "input-streaming":
+                          return (
+                            <div
+                              key={`${message.id}-getWeather-${index}`}
+                              className="animate-pulse"
+                            >
+                              <div>Receiving Generate Image Request</div>
+                              <pre className="text-xs text-gray-300 bg-gray-800 p-2 rounded-lg mt-1">
+                                {JSON.stringify(part.input, null, 2)}
+                              </pre>
+                            </div>
+                          );
+
+                        case "input-available":
+                          return (
+                            <div
+                              key={`${message.id}-generateImage-${index}`}
+                              className="text-gray-200"
+                            >
+                              Generating Image for{" "}
+                              <span className="font-semibold text-teal-300">
+                                {part.input.prompt}
+                              </span>
+                              ...
+                            </div>
+                          );
+
+                        case "output-available":
+                          return (
+                            <div
+                              key={`${message.id}-generateImage-${index}`}
+                              className="bg-gray-800 rounded-lg p-2 mt-2"
+                            >
+                              <div className="flex items-center gap-2 text-teal-300 font-semibold">
+                                Generated Image 
+                              </div>
+                              <Image 
+                                className="rounded-lg"
+                                src={`data:image/png;base64,${part.output}`}
+                                alt="Generatd Image"
+                                height={500}
+                                width={500}
+                                /> 
+                            </div>
+                          );
+
+                        case "output-error":
+                          return (
+                            <div
+                              key={`${message.id}-generateImage-${index}`}
+                              className="text-red-400"
+                            >
+                               {part.errorText}
+                            </div>
+                          );
+
+                        default:
+                          return null
+                      }
                     default:
                       return null;
                   }
@@ -129,7 +192,6 @@ const MultiModalChatPage = () => {
           <input
             id="file-upload"
             type="file"
-            
             multiple
             onChange={(e) => e.target.files && setFiles(e.target.files)}
             className="hidden"
@@ -149,6 +211,7 @@ const MultiModalChatPage = () => {
           {status === "submitted" || status === "streaming" ? (
             <button
               onClick={stop}
+              title="stop"
               className="flex items-center justify-center p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
             >
               <StopCircle className="w-5 h-5" />
@@ -156,6 +219,7 @@ const MultiModalChatPage = () => {
           ) : (
             <button
               type="submit"
+              title="send"
               disabled={status !== "ready"}
               className="flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
